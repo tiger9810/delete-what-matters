@@ -1,65 +1,147 @@
-import Image from "next/image";
+// 2. **`app/page.tsx` - メインページの基本構造**
+//    - 'use client'ディレクティブを追加（クライアントコンポーネントとして）
+//    - React hooks（useState, useEffect）をインポート
+//    - メインの状態管理を実装
+//      - `items` state: アイテムリストの状態
+//      - `deletedOrder` state: 削除順序を記録する配列
+//    - 初期化処理
+//      - `defaultItems`をインポート
+//      - ランダムにシャッフルする関数を作成
+//      - `useEffect`で初期化時にシャッフル
+//    - レイアウト構造
+//      - ヘッダー（タイトル、説明文）
+//      - `ProgressIndicator`コンポーネント（後で実装）
+//      - `GridLayout`コンポーネント
+//      - `ResultModal`コンポーネント（後で実装）
+//    - 基本的なスタイリング（Tailwind CSS）
+'use client'
+// import { useState, useEffect } from 'react'というコードは、ReactのuseStateとuseEffectをインポートしている
+// useStateは、状態管理をするためのReactのhooks
+// hooksは、Reactのコンポーネント内で使用することができる関数である
+// コンポーネントとは、ReactでのUIの部品のことである
+// 例えばボタンコンポーネントを定義したら、そのボタンコンポーネントを使うときに、そのボタンコンポーネントの中身を呼び出すことで、ボタンを表示することができる
+// これは、Reactのコンポーネントを使うことで、UIを再利用することができるということである
+
+import { useState, useEffect} from 'react'
+// 他のファイルからデータをインポートするときは、import データ(配列)名 from '@/フォルダpath/ファイル名'というコードを使用する
+import { lifeValues, Item } from '@/lib/items'
+
 
 export default function Home() {
+  
+  const [items, setItems] = useState<Item[]>(lifeValues);
+  const handleDelete = (clickedId: string) => {
+    // items.filter(item => item.deleted === true)でdeletedがtrueになっているものをピックアップして、.lengthでその数をカウントしている
+    const deletedCount = items.filter(item => item.deleted === true).length;
+    
+    const newItems = items.map(item => {
+      if (item.id === clickedId) {
+        return {
+          ...item,
+          deleted: true,
+          deletedOrder: deletedCount + 1
+        };
+      }
+      return item;
+    });
+    
+    setItems(newItems);
+  };
+  const remainingCount = items.filter(item => item.deleted === false).length;
+  const top10 = items.filter(item => item.deleted === true).sort((a, b) => (b.deletedOrder || 0) - (a.deletedOrder || 0)).slice(0, 10);
+  const top3 = top10.slice(0, 3);   // 1位, 2位, 3位
+  const rest = top10.slice(3, 10);  // 4位から10位まで
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <div className="min-h-screen bg-amber-50 p-8">
+      {remainingCount === 0 ? (
+        <div className="max-w-4xl mx-auto">
+          {/* タイトル */}
+          <h1 className="text-4xl font-bold text-center mb-12 text-gray-800">
+            あなたの大切な価値観ランキング
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+          
+          {/* 表彰台 */}
+          <div className="flex items-end justify-center gap-4 mb-12">
+            {/* 2位 */}
+            <div className="flex flex-col items-center">
+            <div className="text-5xl mb-2">🥈</div>
+              <div className="bg-red-800 text-white rounded-lg p-6 h-32 w-32 flex flex-col items-center justify-center">
+                {/* <div className="text-4xl font-bold">🥈</div> */}
+                {/* text-smの他にtext-base, text-lg, text-xl, text-2xl, text-3xl, text-4xl, text-5xl, text-6xl, text-7xl, text-8xl, text-9xl, text-10xlというものがある */}
+                <div className="flex text-base font-bold mt-2 text-center">{top3[1]?.text}</div>
+              </div>
+            </div>
+            
+            {/* 1位 */}
+            <div className="flex flex-col items-center">
+              <div className="text-5xl mb-2">🥇</div>
+              <div className="bg-red-800 text-white rounded-lg p-6 h-48 w-32 flex flex-col items-center justify-center">
+                {/* <div className="text-5xl font-bold">🥇</div> */}
+                <div className="text-2xl font-bold mt-2 text-center">{top3[0]?.text}</div>
+              </div>
+            </div>
+            
+            {/* 3位 */}
+            <div className="flex flex-col items-center">
+            <div className="text-5xl mb-2">🥉</div>
+              <div className="bg-red-800 text-white rounded-lg p-6 h-16 w-32 flex flex-col items-center justify-center">
+                {/* <div className="text-4xl font-bold">🥉</div> */}
+                <div className="text-sm font-bold mt-2 text-center">{top3[2]?.text}</div>
+              </div>
+            </div>
+          </div>
+          
+          {/* 4-10位のリスト */}
+          <div className="bg-white rounded-lg shadow-lg p-8 max-w-md mx-auto">
+            <ul className="space-y-3">
+              {rest.map((item, index) => (
+                <li key={item.id} className="text-lg border-b pb-2">
+                  {index + 4}. {item.text}
+                </li>
+              ))}
+            </ul>
+          </div>
+          {/* ここに追加 ↓ */}
+          <div className="flex gap-4 justify-center mt-8">
+            <button 
+              onClick={() => setItems(lifeValues)}
+              className="bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600"
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+              もう一度やり直す
+            </button>
+            <a 
+        href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(
+          `私の大切な価値観トップ3\n1位: ${top3[0]?.text}\n2位: ${top3[1]?.text}\n3位: ${top3[2]?.text}\n\nあなたは？\n#価値観診断`
+        )}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="bg-blue-400 text-white px-6 py-3 rounded-lg hover:bg-blue-500"
+      >
+        🐦 Twitterでシェア
+      </a>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      ) : (
+        <div>
+          <h1 className="text-3xl font-bold mb-4">必要ないものから消していこう！</h1>
+          <p className="mb-8">残り: {remainingCount}個</p>
+          
+          <div className="grid grid-cols-5 gap-4">
+            {items
+              .filter(item => item.deleted === false)
+              .map(item => (
+                <button 
+                  key={item.id}
+                  onClick={() => handleDelete(item.id)}
+                  className="p-4 bg-blue-500 text-white rounded hover:bg-blue-600"
+                >
+                  {item.text}
+                </button>
+              ))
+            }
+          </div>
         </div>
-      </main>
+      )}
     </div>
   );
 }
