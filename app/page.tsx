@@ -32,20 +32,23 @@ export default function Home() {
   const [items, setItems] = useState<Item[]>(lifeValues);
   const handleDelete = (clickedId: string) => {
     // items.filter(item => item.deleted === true)でdeletedがtrueになっているものをピックアップして、.lengthでその数をカウントしている
-    const deletedCount = items.filter(item => item.deleted === true).length;
-    
-    const newItems = items.map(item => {
-      if (item.id === clickedId) {
-        return {
-          ...item,
-          deleted: true,
-          deletedOrder: deletedCount + 1
-        };
-      }
-      return item;
-    });
-    
-    setItems(newItems);
+    if (items.find(item => item.id === clickedId)?.deleted === true) {
+      // alert('すでに削除されています');
+      return;
+    } else {  
+      const deletedCount = items.filter(item => item.deleted === true).length;
+      const newItems = items.map(item => {
+        if (item.id === clickedId) {
+          return {
+            ...item,
+            deleted: true,
+            deletedOrder: deletedCount + 1
+          };
+        }
+        return item;
+      });
+      setItems(newItems);
+    }
   };
   const remainingCount = items.filter(item => item.deleted === false).length;
   const top10 = items.filter(item => item.deleted === true).sort((a, b) => (b.deletedOrder || 0) - (a.deletedOrder || 0)).slice(0, 10);
@@ -128,12 +131,15 @@ export default function Home() {
           
           <div className="grid grid-cols-5 gap-4">
             {items
-              .filter(item => item.deleted === false)
               .map(item => (
                 <button 
                   key={item.id}
                   onClick={() => handleDelete(item.id)}
-                  className="p-4 bg-blue-500 text-white rounded hover:bg-blue-600"
+                  className={`p-4 rounded ${
+                    item.deleted 
+                      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                      : "bg-blue-500 text-white hover:bg-blue-600"
+                  }`}
                 >
                   {item.text}
                 </button>
